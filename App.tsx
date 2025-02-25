@@ -1,10 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { Lora_700Bold, useFonts } from '@expo-google-fonts/lora';
+import { StyleSheet, Text, View } from 'react-native';
 import TaskList from './screens/taskList';
+
+configureReanimatedLogger({
+	level: ReanimatedLogLevel.warn,
+	strict: false
+});
 
 export default function App() {
 	const [fontsLoaded] = useFonts({Lora_700Bold});
-
+	  	  
 	if (!fontsLoaded) {
 		return <Text>Loading fonts...</Text>;
 	}

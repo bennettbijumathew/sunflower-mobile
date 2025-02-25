@@ -1,42 +1,92 @@
 import ReanimatedSwipeable, { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { collection, doc, onSnapshot, query, updateDoc, where } from '@firebase/firestore';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useRef } from 'react';
+import { Planner } from '../interfaces/plannerInterface';
+import { Task } from '../interfaces/taskInterface';
+import { useEffect, useRef, useState } from 'react';
+import { database } from '../firebaseConfig';
 
-export default function TaskRow() {
-    const reanimatedRef = useRef<SwipeableMethods>(null);
+export default function TaskRow(task: Task) {
+    const [plannerList, setPlannerList] = useState<Planner[]>([])
+    const swipeableRef = useRef<SwipeableMethods>(null);
 
+    useEffect(() => {
+        // The query asks to see planners matches the tasks' planner list.
+        const q = query(collection(database, 'planners'), where('__name__', 'in', task.planners))
+
+        // Using the query, onSnapshot() listens to changes within the document.
+        onSnapshot(q, (querySnapshot) => {
+            setPlannerList([]);
+
+            // Adds a planners to the planners list.
+            querySnapshot.forEach((doc) => {
+                setPlannerList((previous) => [...previous, {
+                    id: doc.id, 
+                    name: doc.data().name, 
+                    color:  doc.data().color, 
+                    visible: doc.data().visible
+                }]);
+            });
+        });
+    }, []);
+
+    // This function completes a task and closes the swipeable element.
     const completeTask = () => {
-        reanimatedRef.current!.close();
-    }
+        const ref = doc(database, 'tasks', task.id);
 
+        if (swipeableRef.current) {
+            // Closes the swipeable element.
+            swipeableRef.current.close();
+
+            // Updates the complete value of the tasks in Firestore.
+            updateDoc(ref, {
+                complete: !task.complete
+            });
+        }
+    };
+    
+    // This function creates a delete button. 
     const renderDeleteButton = () => {       
         return (
             <View style={styles.delete}>
-                <TouchableOpacity onPress={completeTask}>
-                    <MaterialCommunityIcons name="check" size={30} color='black'/>
+                <TouchableOpacity onPress={completeTask} style={styles.deleteButton}>
+                    <MaterialCommunityIcons name='check' size={30} color='black'/>
                 </TouchableOpacity>
             </View>
         );
     }
    
     return (
-        <GestureHandlerRootView>   
-            <ReanimatedSwipeable ref={reanimatedRef} renderRightActions={renderDeleteButton}>
-                <View style={styles.row}> 
-                    <View style={styles.details}> 
-                        <Text style={styles.title}> Task Name </Text>
-                        <Text style={styles.subTitle}> February 26th 2025 </Text>
+        <GestureHandlerRootView key={task.id}>   
+            <ReanimatedSwipeable ref={swipeableRef} renderRightActions={renderDeleteButton} childrenContainerStyle={styles.row}>
+                <View style={styles.details}> 
+                    <Text style={styles.title}> {task.name} </Text>
+                    <Text style={styles.subTitle}> {task.complete.toString()} </Text>
+                </View>
+ 
+                <View style={styles.planners}>
+                    <View style={styles.plannersRow}>
+                        {
+                            // This prints the tasks' first to fourth planners in a grid.  
+                            plannerList.slice(0, 3).map((item) => (
+                                <View style={[styles.planner, {backgroundColor: item.color}]} key={item.id}>
+                                    <Text> {item.name[0].toUpperCase()} </Text>
+                                </View>
+                            ))
+                        }
                     </View>
 
-                    <View style={styles.planners}>
-                        <Text style={[styles.planner, {backgroundColor: '#f09999'}]}> 1 </Text>
-                        <Text style={[styles.planner, {backgroundColor: '#f0cc99'}]}> 2 </Text>
-                        <Text style={[styles.planner, {backgroundColor: '#f0ec99'}]}> 3 </Text>
-                        <Text style={[styles.planner, {backgroundColor: '#cdf099'}]}> 4 </Text>
-                        <Text style={[styles.planner, {backgroundColor: '#99f0e0'}]}> 5 </Text>
-                        <Text style={[styles.planner, {backgroundColor: '#99cdf0'}]}> 6 </Text>
+                    <View style={styles.plannersRow}>
+                        {
+                            // This prints the tasks' fifth to eigth planners in a grid.  
+                            plannerList.slice(4, 7).map((item) => (
+                                <View style={[styles.planner, {backgroundColor: item.color}]} key={item.id}>
+                                    <Text> {item.name[0].toUpperCase()} </Text>
+                                </View>
+                            ))
+                        }
                     </View>
                 </View>
             </ReanimatedSwipeable>
@@ -80,11 +130,12 @@ const styles = StyleSheet.create({
         display: 'flex',
 
         flex: 1,
-        flexWrap: 'wrap',
-        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'center'
+    },
 
-        verticalAlign: 'middle',
-        justifyContent: 'flex-end'
+    plannersRow: {
+        flexDirection: 'row'
     },
 
     planner: {
@@ -98,7 +149,7 @@ const styles = StyleSheet.create({
 
         textAlign: 'center',
 
-        verticalAlign: 'middle'
+        alignItems: 'center'
     },
 
     delete: {
@@ -112,9 +163,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderBottomWidth: 4,
 
-        padding: 10,
+        padding: 10
+    },
 
-        justifyContent:"center", 
-        alignItems:"center"
+    deleteButton: {
+        justifyContent: 'center', 
+        alignItems: 'center',
+
+        height: '100%',
+        width: '100%'
     }
 });
