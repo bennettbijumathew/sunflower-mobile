@@ -26,6 +26,13 @@ const styles = StyleSheet.create({
 		fontFamily: 'Lora_700Bold',
 		paddingTop: 50,
 		paddingBottom: 50,
+		paddingLeft: 15,
+		paddingRight: 15,
+	},
+
+	title: {
+		fontSize: 20,
+			fontWeight: 800
 	}
 });
 

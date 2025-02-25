@@ -3,6 +3,7 @@ import { FlatList, View, Text } from 'react-native';
 import { Task } from '../interfaces/taskInterface';
 import { database } from '../firebaseConfig';
 import { useEffect, useState } from 'react';
+import TaskRow from '../components/taskRow';
 
 export default function TaskList() {
     const [tasks, setTasks] = useState<Task[]>([])
@@ -49,13 +50,13 @@ export default function TaskList() {
             setTasks([]);
         }
     }, [visiblePlanners])
-
+    
     return (
         <FlatList
             data={tasks}
             keyExtractor={(item) => item.id}
             renderItem = { 
-                ({item}) => <View id={item.id}> <Text> {item.name} </Text> </View> 
+                ({item}) => <TaskRow/> 
             }
         />
     );
