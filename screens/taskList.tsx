@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react';
 import TaskRow from '../components/taskRow';
 
 export default function TaskList() {
-    const [tasks, setTasks] = useState<Task[]>([])
+    const [completeTasks, setCompleteTasks] = useState<Task[]>([])
+    const [incompleteTasks, setIncompleteTasks] = useState<Task[]>([])
     const [visiblePlanners, setVisiblePlanners] = useState<string[]>([]);
 
     useEffect(() => {
@@ -27,15 +28,34 @@ export default function TaskList() {
     useEffect(() => {
         if (visiblePlanners.length > 0) {
             // The querys asks to see tasks that are in the planners that are set to visible.
-            const q = query(collection(database, 'tasks'), where('planners', 'array-contains-any', visiblePlanners));
+            const q = query(collection(database, 'tasks'), where('planners', 'array-contains-any', visiblePlanners), where('complete', '==', true));
 
             // Using the query, onSnapshot() listens to changes within the document.
             onSnapshot(q, (querySnapshot) => {
-                setTasks([]);
+                setCompleteTasks([]);
 
                 // Adds a tasks to the tasks array.
                 querySnapshot.forEach((doc) => {
-                    setTasks((previous) => [...previous, {
+                    setCompleteTasks((previous) => [...previous, {
+                        id: doc.id, 
+                        name: doc.data().name, 
+                        date:  doc.data().date.toDate(), 
+                        complete:  doc.data().complete, 
+                        planners: doc.data().planners
+                    }]);
+                });
+            });
+            
+            // The querys asks to see tasks that are in the planners that are set to visible.
+            const q2 = query(collection(database, 'tasks'), where('planners', 'array-contains-any', visiblePlanners), where('complete', '==', false));
+
+            // Using the query, onSnapshot() listens to changes within the document.
+            onSnapshot(q2, (querySnapshot) => {
+                setIncompleteTasks([]);
+
+                // Adds a tasks to the tasks array.
+                querySnapshot.forEach((doc) => {
+                    setIncompleteTasks((previous) => [...previous, {
                         id: doc.id, 
                         name: doc.data().name, 
                         date:  doc.data().date.toDate(), 
@@ -47,19 +67,32 @@ export default function TaskList() {
         }
 
         else {
-            setTasks([]);
+            setCompleteTasks([]);
+            setIncompleteTasks([]);
         }
     }, [visiblePlanners])
     
     return (
-        <FlatList
-            data={tasks}
-            keyExtractor={
-                (item) => item.id
-            }
-            renderItem={ 
-                ({item}) => <TaskRow id={item.id} name={item.name} date={item.date} complete={item.complete} planners={item.planners}/> 
-            }
-        />
+        <View>
+            <FlatList
+                data={completeTasks}
+                keyExtractor={
+                    (item) => item.id
+                }
+                renderItem={ 
+                    ({item}) => <TaskRow id={item.id} name={item.name} date={item.date} complete={item.complete} planners={item.planners}/> 
+                }
+            />
+
+            <FlatList
+                data={incompleteTasks}
+                keyExtractor={
+                    (item) => item.id
+                }
+                renderItem={ 
+                    ({item}) => <TaskRow id={item.id} name={item.name} date={item.date} complete={item.complete} planners={item.planners}/> 
+                }
+            />
+        </View>
     );
 }

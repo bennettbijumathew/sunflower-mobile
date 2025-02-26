@@ -62,10 +62,10 @@ export default function TaskRow(task: Task) {
    
     return (
         <GestureHandlerRootView key={task.id}>   
-            <ReanimatedSwipeable ref={swipeableRef} renderRightActions={renderDeleteButton} childrenContainerStyle={styles.row}>
+            <ReanimatedSwipeable ref={swipeableRef} renderRightActions={renderDeleteButton} childrenContainerStyle={[styles.row, task.complete == true ? styles.complete : styles.incomplete ]}>
                 <View style={styles.details}> 
                     <Text style={styles.title}> {task.name} </Text>
-                    <Text style={styles.subTitle}> {days[task.date.getDay()]}, {task.date.getDate()} {months[task.date.getMonth()]} {task.date.getFullYear()} </Text>
+                    <Text style={styles.subTitle}> {days[task.date.getDay()]}, {task.date.getDate()} {months[task.date.getMonth()]} </Text>
                 </View>
  
                 <View style={styles.planners}>
@@ -97,6 +97,14 @@ export default function TaskRow(task: Task) {
 }
 
 const styles = StyleSheet.create({
+    complete: {
+        backgroundColor: '#f7f0e6',
+    },
+
+    incomplete: {
+        backgroundColor: '#e0dad1',
+    },
+
     row: {
         backgroundColor: '#f7f0e6',
 
