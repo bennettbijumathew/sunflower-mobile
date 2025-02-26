@@ -1,5 +1,5 @@
 import ReanimatedSwipeable, { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
-import { collection, doc, onSnapshot, query, updateDoc, where } from '@firebase/firestore';
+import { Timestamp, collection, doc, onSnapshot, query, updateDoc, where } from '@firebase/firestore';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -7,6 +7,8 @@ import { Planner } from '../interfaces/plannerInterface';
 import { Task } from '../interfaces/taskInterface';
 import { useEffect, useRef, useState } from 'react';
 import { database } from '../firebaseConfig';
+import { days } from '../arrays/days';
+import { months } from '../arrays/months';
 
 export default function TaskRow(task: Task) {
     const [plannerList, setPlannerList] = useState<Planner[]>([])
@@ -63,7 +65,7 @@ export default function TaskRow(task: Task) {
             <ReanimatedSwipeable ref={swipeableRef} renderRightActions={renderDeleteButton} childrenContainerStyle={styles.row}>
                 <View style={styles.details}> 
                     <Text style={styles.title}> {task.name} </Text>
-                    <Text style={styles.subTitle}> {task.complete.toString()} </Text>
+                    <Text style={styles.subTitle}> {days[task.date.getDay()]}, {task.date.getDate()} {months[task.date.getMonth()]} {task.date.getFullYear()} </Text>
                 </View>
  
                 <View style={styles.planners}>

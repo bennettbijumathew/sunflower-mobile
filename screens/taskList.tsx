@@ -1,4 +1,4 @@
-import { collection, onSnapshot, query, where } from '@firebase/firestore';
+import { Timestamp, collection, onSnapshot, query, where } from '@firebase/firestore';
 import { FlatList, View, Text } from 'react-native';
 import { Task } from '../interfaces/taskInterface';
 import { database } from '../firebaseConfig';
@@ -38,7 +38,7 @@ export default function TaskList() {
                     setTasks((previous) => [...previous, {
                         id: doc.id, 
                         name: doc.data().name, 
-                        date:  doc.data().date, 
+                        date:  doc.data().date.toDate(), 
                         complete:  doc.data().complete, 
                         planners: doc.data().planners
                     }]);
